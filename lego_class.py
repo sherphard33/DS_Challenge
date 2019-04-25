@@ -47,7 +47,7 @@ def load_data(data_dir):
     return images, labels
 
 
-ROOT_PATH = "C:/Users/Megatech/Desktop/"
+ROOT_PATH = "C:/Users/Phoenix Aiden/Documents/" # Root Folder
 train_data_dir = os.path.join(ROOT_PATH, "LEGO/train")
 test_data_dir = os.path.join(ROOT_PATH, "LEGO/valid")
 images, labels = load_data(train_data_dir)
