@@ -1,5 +1,6 @@
 # Shephard MagicianGirl PhoenixAiden 22/04/2019
 import argparse
+import itertools
 #matplotlib.use("Agg")
 import matplotlib
 import numpy as np
@@ -15,7 +16,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from keras.preprocessing.image import array_to_img, img_to_array, load_img, ImageDataGenerator
 
-EPOCHS = 25
+EPOCHS = 2
 BS = 16
 ap = argparse.ArgumentParser()
 ap.add_argument("-p", "--plot", type=str, default="plot.png")
@@ -46,24 +47,23 @@ def load_data(data_dir):
     return images, labels
 
 
-ROOT_PATH = "C:/Users/Phoenix Aiden/Desktop/" # Root directory
-train_data_dir = os.path.join(ROOT_PATH, "LEGO/train") #Renamed all the class folder to (0000 -> 0015)
+ROOT_PATH = "C:/Users/Megatech/Desktop/"
+train_data_dir = os.path.join(ROOT_PATH, "LEGO/train")
 test_data_dir = os.path.join(ROOT_PATH, "LEGO/valid")
-images, labels = load_data(train_data_dir) #Used onlt this folder due to low amounts of RAM
+images, labels = load_data(train_data_dir)
 
 
 # Make a histogram with 32 bins of 16 labels.
 plt.hist(labels, 32)
 plt.show()
-#Plot random legos to visualize data
 plt.figure(figsize=(10,10))
 legos=[300, 2250, 3650, 4000]
-for i in legos:
+for i in range(len(legos)):
     plt.subplot(5,5,i+1)
     plt.xticks([])
     plt.yticks([])
     plt.grid(False)
-    plt.imshow(train_images[i], cmap=plt.cm.binary)
+    plt.imshow(images[i], cmap=plt.cm.binary)
     plt.xlabel(lego_classes[labels[i]])
 plt.show()
 # scale the raw pixel intensities to the range [0, 1]
@@ -76,6 +76,7 @@ labels = np.array(labels)
 (trainX, testX, trainY, testY) = train_test_split(data,
 	labels, test_size=0.25, random_state=42)#Only Used the dataset marked 'Train' my pc has low amounts of RAM
  
+
 # Define model architecture
 model = tf.keras.Sequential([
     tf.keras.layers.Conv2D(filters=64, kernel_size=2, padding='same', activation=tf.nn.relu, input_shape=(200, 200, 4)),
@@ -94,12 +95,11 @@ model = tf.keras.Sequential([
     tf.keras.layers.Dense(16, activation=tf.nn.softmax)])
 
 model.summary()  # Take a look at the model summary
-
 # Compile Model
 model.compile(loss='sparse_categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
-checkpoint = ModelCheckpoint(filepath='model.weights.best.hdf5', verbose=1, save_best_only=True)
+#checkpoint = ModelCheckpoint(filepath='model.hdf5', verbose=1, save_best_only=True)
 
 # construct the image generator for data augmentation
 aug = ImageDataGenerator(rotation_range=30, width_shift_range=0.1,
@@ -113,10 +113,8 @@ callbacks = [
         # "no longer improving" being defined as "no better than 1e-2 less"
         min_delta=1e-2,
         # "no longer improving" being further defined as "for at least 2 epochs"
-        patience=3,
+        patience=2,
         verbose=1)
-
-    # MetricsCheckpoint('logs')
 ]
 
 H = model.fit_generator(
@@ -125,10 +123,12 @@ H = model.fit_generator(
     validation_data=[testX, testY],
     validation_steps=100,
     epochs=EPOCHS,
-    verbose=1
+    verbose=1,
     callbacks=callbacks
 )
-
+# save the model to disk
+print("[INFO] serializing network...")
+model.save(args["model"])
 
 # plot the training loss and accuracy
 plt.style.use("ggplot")
@@ -146,7 +146,12 @@ plt.savefig(args["plot"])
 
 
 # Load the weights with the best validation accuracy
-model.load_weights('model.weights.best.hdf5')
+model.load_weights('model.hdf5')
+# Evaluate the model on test set
+score = model.evaluate(testX, testY, verbose=0)
+# Print test accuracy
+print('\n', 'Test accuracy:', score[1])
+
 #Plot ROC Curve
 prob = model.predict_proba(testX)
 prob = pro[:,1]
@@ -155,7 +160,3 @@ fpr,tpr,thresholds = roc_curve(testY, prob)
 plt.plot([0,1],[0,1], linestyle='*')
 plt.plot(fpr, tpr, marker='.')
 plt.show()
-# Evaluate the model on test set
-score = model.evaluate(testX, testY, verbose=0)
-# Print test accuracy
-print('\n', 'Test accuracy:', score[1])
