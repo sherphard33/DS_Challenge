@@ -100,7 +100,7 @@ model.summary()  # Take a look at the model summary
 model.compile(loss='sparse_categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
-#checkpoint = ModelCheckpoint(filepath='model.hdf5', verbose=1, save_best_only=True)
+
 
 # construct the image generator for data augmentation
 aug = ImageDataGenerator(rotation_range=30, width_shift_range=0.1,
@@ -146,18 +146,8 @@ plt.legend(loc="lower left")
 plt.savefig(args["plot"])
 
 
-# Load the weights with the best validation accuracy
-model.load_weights('model.hdf5')
 # Evaluate the model on test set
 score = model.evaluate(testX, testY, verbose=0)
 # Print test accuracy
 print('\n', 'Test accuracy:', score[1])
 
-#Plot ROC Curve
-prob = model.predict_proba(testX)
-prob = pro[:,1]
-auc = roc_auc_score(testY, prob)
-fpr,tpr,thresholds = roc_curve(testY, prob)
-plt.plot([0,1],[0,1], linestyle='*')
-plt.plot(fpr, tpr, marker='.')
-plt.show()
