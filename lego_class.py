@@ -16,7 +16,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from keras.preprocessing.image import array_to_img, img_to_array, load_img, ImageDataGenerator
 
-EPOCHS = 2
+EPOCHS = 25
 BS = 16
 ap = argparse.ArgumentParser()
 ap.add_argument("-p", "--plot", type=str, default="plot.png")
