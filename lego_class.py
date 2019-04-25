@@ -10,17 +10,18 @@ from skimage import data
 from skimage import transform
 import matplotlib.pyplot as plt
 from skimage.color import rgb2gray
+from keras.models import load_model
 from keras.callbacks import ModelCheckpoint
 from keras.utils.np_utils import to_categorical
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from keras.preprocessing.image import array_to_img, img_to_array, load_img, ImageDataGenerator
-
+from sklearn import metrics
 EPOCHS = 25
 BS = 16
 ap = argparse.ArgumentParser()
-ap.add_argument("-m", "--model", type=str, default="model")
 ap.add_argument("-p", "--plot", type=str, default="plot.png")
+ap.add_argument("-m", "--model", type=str, default="model.hdf5")
 args = vars(ap.parse_args())
 
 
@@ -48,11 +49,11 @@ def load_data(data_dir):
     return images, labels
 
 
-ROOT_PATH = "C:/Users/Phoenix Aiden/Documents/" # Root Folder
+ROOT_PATH = "C:/Users/Megatech/Desktop/"
 train_data_dir = os.path.join(ROOT_PATH, "LEGO/train")
 test_data_dir = os.path.join(ROOT_PATH, "LEGO/valid")
 images, labels = load_data(train_data_dir)
-
+data = rgb2gray(np.array(images)) #Convert to Gray Scale for better perfomance
 
 # Make a histogram with 32 bins of 16 labels.
 plt.hist(labels, 32)
@@ -68,19 +69,26 @@ for i in range(len(legos)):
     plt.xlabel(lego_classes[labels[i]])
 plt.show()
 # scale the raw pixel intensities to the range [0, 1]
-data = np.array(images, dtype="float") / 255.0
+data = np.array(data, dtype="float") / 255.0
+print(data.shape)
+data64 = data.reshape(data.shape[0],200,200,1)
+data64 = np.array(data64)
+#Encode labels
+en = LabelEncoder()
+labels = en.fit_transform(labels)
 labels = np.array(labels)
-#images64 = rgb2gray(np.array(images)) #Convert to Gray Scale for better perfomance
+
 
 # partition the data into training and testing splits using 75% of
 # the data for training and the remaining 25% for testing
-(trainX, testX, trainY, testY) = train_test_split(data,
+(trainX, testX, trainY, testY) = train_test_split(data64,
 	labels, test_size=0.25, random_state=42)#Only Used the dataset marked 'Train' my pc has low amounts of RAM
- 
+
+
 
 # Define model architecture
 model = tf.keras.Sequential([
-    tf.keras.layers.Conv2D(filters=64, kernel_size=2, padding='same', activation=tf.nn.relu, input_shape=(200, 200, 4)),
+    tf.keras.layers.Conv2D(filters=64, kernel_size=2, padding='same', activation=tf.nn.relu, input_shape=(200, 200,1)),
     tf.keras.layers.MaxPooling2D(pool_size=2),
     tf.keras.layers.Dropout(0.3),
 
@@ -100,7 +108,7 @@ model.summary()  # Take a look at the model summary
 model.compile(loss='sparse_categorical_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
-
+checkpoint = ModelCheckpoint(filepath='model.hdf5', verbose=1, save_best_only=True)
 
 # construct the image generator for data augmentation
 aug = ImageDataGenerator(rotation_range=30, width_shift_range=0.1,
@@ -129,7 +137,7 @@ H = model.fit_generator(
 )
 # save the model to disk
 print("[INFO] serializing network...")
-model.save(args["model"])
+model.save("model.hdf5")
 
 # plot the training loss and accuracy
 plt.style.use("ggplot")
@@ -150,4 +158,3 @@ plt.savefig(args["plot"])
 score = model.evaluate(testX, testY, verbose=0)
 # Print test accuracy
 print('\n', 'Test accuracy:', score[1])
-
