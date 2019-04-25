@@ -15,7 +15,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from keras.preprocessing.image import array_to_img, img_to_array, load_img, ImageDataGenerator
 
-EPOCHS = 2 # Set it to 2 so that i could test the chart plots but default is '25'
+EPOCHS = 25
 BS = 16
 ap = argparse.ArgumentParser()
 ap.add_argument("-p", "--plot", type=str, default="plot.png")
@@ -144,41 +144,18 @@ plt.ylabel("Loss/Accuracy")
 plt.legend(loc="lower left")
 plt.savefig(args["plot"])
 
-def plot_confusion_matrix(cm, classes,
-                          normalize=False,
-                          title='Confusion matrix',
-                          cmap=plt.cm.Blues):
-    """
-    This function prints and plots the confusion matrix.
-    Normalization can be applied by setting `normalize=True`.
-    """
-    plt.figure(figsize = (5,5))
-    plt.imshow(cm, interpolation='nearest', cmap=cmap)
-    plt.title(title)
-    plt.colorbar()
-    tick_marks = np.arange(len(classes))
-    plt.xticks(tick_marks, classes, rotation=90)
-    plt.yticks(tick_marks, classes)
-    if normalize:
-        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-
-    thresh = cm.max() / 2.
-    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-        plt.text(j, i, cm[i, j],
-                 horizontalalignment="center",
-                 color="white" if cm[i, j] > thresh else "black")
-    plt.tight_layout()
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
-
-plot_confusion_matrix(cm,16,normalize=False,
-                          title='Confusion matrix',
-                          cmap=plt.cm.Blue)
 
 # Load the weights with the best validation accuracy
 model.load_weights('model.weights.best.hdf5')
+#Plot ROC Curve
+prob = model.predict_proba(testX)
+prob = pro[:,1]
+auc = roc_auc_score(testY, prob)
+fpr,tpr,thresholds = roc_curve(testY, prob)
+plt.plot([0,1],[0,1], linestyle='*')
+plt.plot(fpr, tpr, marker='.')
+plt.show()
 # Evaluate the model on test set
 score = model.evaluate(testX, testY, verbose=0)
-
 # Print test accuracy
 print('\n', 'Test accuracy:', score[1])
