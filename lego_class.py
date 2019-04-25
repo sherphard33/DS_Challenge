@@ -19,6 +19,7 @@ from keras.preprocessing.image import array_to_img, img_to_array, load_img, Imag
 EPOCHS = 25
 BS = 16
 ap = argparse.ArgumentParser()
+ap.add_argument("-m", "--model", type=str, default="model")
 ap.add_argument("-p", "--plot", type=str, default="plot.png")
 args = vars(ap.parse_args())
 
