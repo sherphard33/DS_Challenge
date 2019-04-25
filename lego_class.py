@@ -1,6 +1,5 @@
 # Shephard MagicianGirl PhoenixAiden 22/04/2019
 import argparse
-import gc
 #matplotlib.use("Agg")
 import matplotlib
 import numpy as np
@@ -16,7 +15,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from keras.preprocessing.image import array_to_img, img_to_array, load_img, ImageDataGenerator
 
-EPOCHS = 2
+EPOCHS = 2 # Set it to 2 so that i could test the chart plots but default is '25'
 BS = 16
 ap = argparse.ArgumentParser()
 ap.add_argument("-p", "--plot", type=str, default="plot.png")
@@ -47,15 +46,16 @@ def load_data(data_dir):
     return images, labels
 
 
-ROOT_PATH = "C:/Users/Megatech/Desktop/"
-train_data_dir = os.path.join(ROOT_PATH, "LEGO/train")
+ROOT_PATH = "C:/Users/Phoenix Aiden/Desktop/" # Root directory
+train_data_dir = os.path.join(ROOT_PATH, "LEGO/train") #Renamed all the class folder to (0000 -> 0015)
 test_data_dir = os.path.join(ROOT_PATH, "LEGO/valid")
-images, labels = load_data(train_data_dir)
+images, labels = load_data(train_data_dir) #Used onlt this folder due to low amounts of RAM
 
 
 # Make a histogram with 32 bins of 16 labels.
 plt.hist(labels, 32)
 plt.show()
+#Plot random legos to visualize data
 plt.figure(figsize=(10,10))
 legos=[300, 2250, 3650, 4000]
 for i in legos:
@@ -76,9 +76,6 @@ labels = np.array(labels)
 (trainX, testX, trainY, testY) = train_test_split(data,
 	labels, test_size=0.25, random_state=42)#Only Used the dataset marked 'Train' my pc has low amounts of RAM
  
-
-
-
 # Define model architecture
 model = tf.keras.Sequential([
     tf.keras.layers.Conv2D(filters=64, kernel_size=2, padding='same', activation=tf.nn.relu, input_shape=(200, 200, 4)),
@@ -97,6 +94,7 @@ model = tf.keras.Sequential([
     tf.keras.layers.Dense(16, activation=tf.nn.softmax)])
 
 model.summary()  # Take a look at the model summary
+
 # Compile Model
 model.compile(loss='sparse_categorical_crossentropy',
               optimizer='adam',
@@ -116,7 +114,7 @@ callbacks = [
         min_delta=1e-2,
         # "no longer improving" being further defined as "for at least 2 epochs"
         patience=3,
-        verbose=1),
+        verbose=1)
 
     # MetricsCheckpoint('logs')
 ]
@@ -128,12 +126,9 @@ H = model.fit_generator(
     validation_steps=100,
     epochs=EPOCHS,
     verbose=1
-    #callbacks=callbacks
+    callbacks=callbacks
 )
 
-# save the model to disk
-print("[INFO] serializing network...")
-model.save(args["model"])
 
 # plot the training loss and accuracy
 plt.style.use("ggplot")
@@ -186,4 +181,4 @@ model.load_weights('model.weights.best.hdf5')
 score = model.evaluate(testX, testY, verbose=0)
 
 # Print test accuracy
-# print('\n', 'Test accuracy:', score[1])
+print('\n', 'Test accuracy:', score[1])
