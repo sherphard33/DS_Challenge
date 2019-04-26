@@ -1,8 +1,8 @@
 # Shephard MagicianGirl PhoenixAiden 22/04/2019
 import argparse
 import itertools
-#matplotlib.use("Agg")
 import matplotlib
+matplotlib.use("Agg")
 import numpy as np
 import os
 import tensorflow as tf
@@ -19,10 +19,7 @@ from keras.preprocessing.image import array_to_img, img_to_array, load_img, Imag
 from sklearn import metrics
 EPOCHS = 25
 BS = 16
-ap = argparse.ArgumentParser()
-ap.add_argument("-p", "--plot", type=str, default="plot.png")
-ap.add_argument("-m", "--model", type=str, default="model.hdf5")
-args = vars(ap.parse_args())
+
 
 
 lego_classes = ["Brick corner", "Brick 2x2", "Brick 1x2", "Brick 1x1", "Plate 2x2", "Plate 1x2", "Plate 1x1",
@@ -151,7 +148,7 @@ plt.title("Training Loss and Accuracy on Lego Bricks")
 plt.xlabel("Epoch #")
 plt.ylabel("Loss/Accuracy")
 plt.legend(loc="lower left")
-plt.savefig(args["plot"])
+plt.savefig("plot.png")
 
 
 # Evaluate the model on test set
